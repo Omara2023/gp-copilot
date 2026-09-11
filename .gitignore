@@ -9,6 +9,9 @@
 #To leave out note files
 *.txt
 
+#To omit test data pdfs
+*.pdf
+
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
