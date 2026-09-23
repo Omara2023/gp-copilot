@@ -1,7 +1,4 @@
-from chromadb import Client
 from chromadb.api import ClientAPI
-
-COLLECTION_NAME = "clinical_documents" #replace with env variables
 
 class ChromaClient:
     """Wrapper to interact with chromadb vector database."""
