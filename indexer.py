@@ -38,15 +38,14 @@ def metadata_extract_node(state: IndexerState, config: RunnableConfig) -> dict:
     metadata = []
     for c in chunks:
         result = metadata_extractor.invoke(c)
-        if result:
-            metadata.append(result)
+        metadata.append(result if result else ClinicalMetadata())
 
     return {"metadata": metadata}
 
 
 def inject_node(state: IndexerState, config: RunnableConfig) -> dict:
     vector_client = config["configurable"]["vector_client"]
-    chunks, metadata = state["chunks"], state["metadatas"]
+    chunks, metadata = state["chunks"], state["metadata"]
     ids = [chunk.id for chunk in chunks]
 
     # if not precomputed_embeddings:
@@ -60,11 +59,13 @@ def inject_node(state: IndexerState, config: RunnableConfig) -> dict:
 def main():
     builder = StateGraph(IndexerState)
 
+    builder.add_node("parser", parse_node)
     builder.add_node("chunker", chunk_node)
     builder.add_node("metadata_extractor", metadata_extract_node)
     builder.add_node("injector", inject_node)
 
-    builder.add_edge(START, "chunker")
+    builder.add_edge(START, "parser")
+    builder.add_edge("parser", "chunker")
     builder.add_edge("chunker", "injector")
     #can worry about parallelism and precomputing vectors next.
     builder.add_edge("injector", END)
