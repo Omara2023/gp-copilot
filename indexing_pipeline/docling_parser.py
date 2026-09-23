@@ -12,17 +12,13 @@ class DoclingParser(DocumentParser):
         self.converter = DocumentConverter() 
         self.chunker = HybridChunker() #consider DI for both
 
-    def _parse(self, path: str) -> DoclingDocument:  
+    def read(self, path: str) -> DoclingDocument:  
         p = Path(path)
         if p.exists() and p.is_file() and p.name.endswith(".pdf"):  
             return self.converter.convert(path)
         return DoclingDocument()
 
-    def _chunk(self, doc: DoclingDocument) -> list[BaseChunk]:
+    def chunk(self, doc: DoclingDocument) -> list[BaseChunk]:
         return [chunk for chunk in self.chunker.chunk(doc)]
         #llm metadata extraction & embedding. this needs to be a langraph parallelisation    
         #could parallelise this with asyncio or do langrpaph on the collection as a whole, evaluate/consider both.
-
-    def process_document(self, path: str) -> list[BaseChunk]:
-        doc = self._parse(path)
-        return self._chunk(doc)
