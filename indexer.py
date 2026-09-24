@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from langgraph.graph import START, END, StateGraph
-from langchain_core.runnables import RunnableConfig
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.types.doc.document import DoclingDocument
 from chromadb import Client
@@ -18,57 +17,54 @@ class IndexerState(BaseModel):
     chunks: list[BaseChunk]
     metadata: list[ClinicalMetadata] 
 
-def document_processing_node(state: IndexerState, config: RunnableConfig) -> dict:
-    parser = config["configurable"]["parser"]
-    document = parser.read(state["path"])
-    chunks = parser.chunk(document)
-    return {"document": document, "chunks": chunks}
+class Indexer:
 
-def metadata_extraction_node(state: IndexerState, config: RunnableConfig) -> dict:
-    metadata_extractor = config["configurable"]["metadata_extractor"]
-    chunks = state["chunks"]
+    def __init__(self, parser: DoclingParser, metadata_extractor: ClinicalMetadataExtractor, vector_client: ChromaClient):
+        self.parser = parser
+        self.metadata_extractor = metadata_extractor
+        self.vector_client = vector_client
 
-    metadata = []
-    for c in chunks:
-        result = metadata_extractor.invoke(c)
-        metadata.append(result)
+        self.graph = self._build_graph()
 
-    return {"metadata": metadata}
-
-def injection_node(state: IndexerState, config: RunnableConfig) -> dict:
-    vector_client = config["configurable"]["vector_client"]
-    chunks, metadata = state["chunks"], state["metadata"]
-    ids = [chunk.id for chunk in chunks]
-    vector_client.add(docuements=chunks, metadatas=metadata, ids=ids)
-    return {}
-
-def main():
-    builder = StateGraph(IndexerState)
-
-    builder.add_node("document_processing", document_processing_node)
-    builder.add_node("metadata_extraction", metadata_extraction_node)
-    builder.add_node("injection", injection_node)
-
-    builder.add_edge(START, "document_processing")
-    builder.add_edge("document_processing", "metadata_extraction_node")
-    builder.add_edge("metadata_extraction_node", "injector")
-    builder.add_edge("injector", END)
+    def _build_graph(self):
+        builder = StateGraph(IndexerState)
+        
+        builder.add_node("document_processing", self.document_processing)
+        builder.add_node("metadata_extraction", self.metadata_extraction)
+        builder.add_node("injection", self.injection)
     
-    app = builder.compile()
-    client = Client()
+        builder.add_edge(START, "document_processing")
+        builder.add_edge("document_processing", "metadata_extraction")
+        builder.add_edge("metadata_extraction", "injection")
+        builder.add_edge("injection", END)
+        
+        return builder.compile()
 
-    config = {
-        "configurable": {
-            "parser": DoclingParser(),
-            "metadata_extractor": ClinicalMetadataExtractor(MODEL_NAME),
-            "vector_client": ChromaClient(client, COLLECTION_NAME),
-        }
-    }
+    def document_processing(self, state: IndexerState) -> dict:
+        document = self.parser.read(state["path"])
+        chunks = self.parser.chunk(document)
+        return {"document": document, "chunks": chunks}
 
-    result = app.invoke(
-        {"path": "data/mr_xander.pdf"},
-        config=config,
-    )
+    def metadata_extraction(self, state: IndexerState) -> dict:
+        chunks = state["chunks"]
+        metadata = []
+        for c in chunks:
+            result = self.metadata_extractor.invoke(c)
+            metadata.append(result)
+
+        return {"metadata": metadata}
+
+    def injection(self, state: IndexerState) -> dict:
+        chunks = state["chunks"]
+        metadata = [m.model_dump() for m in state["metadata"]]
+        ids = [chunk.id for chunk in chunks]
+        self.vector_client.add(docuements=chunks, metadatas=metadata, ids=ids)
+        return {}
+
+    def run(self, path: str):
+        self.graph.invoke({"path": path})
 
 if __name__ == "__main__":
-    main()
+    client = Client()
+    indexer = Indexer(DoclingParser(), ClinicalMetadataExtractor(MODEL_NAME), ChromaClient(client, COLLECTION_NAME))
+    indexer.run("data/mr_xander.pdf")
