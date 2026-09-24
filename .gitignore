@@ -6,9 +6,6 @@
 # $ git config --global mergetool.keepBackup false
 *.orig
 
-#To leave out note files
-*.txt
-
 #To omit test data pdfs
 *.pdf
 
