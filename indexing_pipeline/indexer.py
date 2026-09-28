@@ -2,14 +2,10 @@ from pydantic import BaseModel
 from langgraph.graph import START, END, StateGraph
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.types.doc.document import DoclingDocument
-from chromadb import Client
 from models.clinical_metadata import ClinicalMetadata
 from indexing_pipeline.docling_parser import DoclingParser
 from indexing_pipeline.chroma_client import ChromaClient
 from indexing_pipeline.clinical_metadata_extractor import ClinicalMetadataExtractor
-
-MODEL_NAME = "gemini-2.5-flash"
-COLLECTION_NAME = "clinical_documents" #replace with env variables
 
 class IndexerState(BaseModel):
     path: str
@@ -63,8 +59,3 @@ class Indexer:
 
     def run(self, path: str):
         self.graph.invoke({"path": path})
-
-if __name__ == "__main__":
-    client = Client()
-    indexer = Indexer(DoclingParser(), ClinicalMetadataExtractor(MODEL_NAME), ChromaClient(client, COLLECTION_NAME))
-    indexer.run("data/mr_xander.pdf")
