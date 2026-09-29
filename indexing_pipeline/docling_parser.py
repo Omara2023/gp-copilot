@@ -12,7 +12,7 @@ class DoclingParser(DocumentParser):
         self.converter = DocumentConverter() 
         self.chunker = HybridChunker() #consider DI for both
 
-    def read(self, path: str) -> DoclingDocument:  
+    def parse(self, path: str) -> DoclingDocument:  
         p = Path(path)
         if p.exists() and p.is_file() and p.name.endswith(".pdf"):  
             return self.converter.convert(path)
