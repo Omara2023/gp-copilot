@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+import uuid #to replace with deterministic approach of document_id + index to ensure proper dedupe of reindexing same document
+from pydantic import BaseModel, Field
 from langgraph.graph import START, END, StateGraph
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.types.doc.document import DoclingDocument
@@ -10,8 +11,8 @@ from indexing_pipeline.clinical_metadata_extractor import MetadataExtractor
 class IndexerState(BaseModel):
     path: str
     document: DoclingDocument | None = None
-    chunks: list[BaseChunk]
-    metadata: list[ClinicalMetadata] 
+    chunks: list[BaseChunk] = Field(default_factory=list)
+    metadata: list[ClinicalMetadata] = Field(default_factory=list)
 
 class Indexer:
 
@@ -37,12 +38,12 @@ class Indexer:
         return builder.compile()
 
     def document_processing(self, state: IndexerState) -> dict:
-        document = self.parser.read(state["path"])
+        document = self.parser.parse(state.path)
         chunks = self.parser.chunk(document)
         return {"document": document, "chunks": chunks}
 
     def metadata_extraction(self, state: IndexerState) -> dict:
-        chunks = state["chunks"]
+        chunks = state.chunks
         metadata = []
         for c in chunks:
             result = self.metadata_extractor.invoke(c)
@@ -51,10 +52,10 @@ class Indexer:
         return {"metadata": metadata}
 
     def injection(self, state: IndexerState) -> dict:
-        chunks = state["chunks"]
-        metadata = [m.model_dump() for m in state["metadata"]]
-        ids = [chunk.id for chunk in chunks]
-        self.vector_client.add(docuements=chunks, metadatas=metadata, ids=ids)
+        documents = [chunk.text for chunk in state.chunks]
+        metadata = [self.vector_client._to_chroma_metadata(m) for m in state.metadata]
+        ids = [str(uuid.uuid4()) for _ in documents]
+        self.vector_client.add(documents=documents, metadata=metadata, ids=ids)
         return {}
 
     def run(self, path: str):

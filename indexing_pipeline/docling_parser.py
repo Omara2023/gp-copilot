@@ -15,7 +15,8 @@ class DoclingParser(DocumentParser):
     def parse(self, path: str) -> DoclingDocument:  
         p = Path(path)
         if p.exists() and p.is_file() and p.name.endswith(".pdf"):  
-            return self.converter.convert(path)
+            result = self.converter.convert(path)
+            return result.document
         return DoclingDocument()
 
     def chunk(self, doc: DoclingDocument) -> list[BaseChunk]:

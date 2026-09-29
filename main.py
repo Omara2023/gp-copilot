@@ -7,7 +7,7 @@ from chromadb import CloudClient
 # from services.cloud_storage import upload_to_gcs, download_from_gcs
 from indexing_pipeline.docling_parser import DoclingParser
 # from indexing_pipeline.clinical_metadata_extractor import ClinicalMetadataExtractor
-from indexing_pipeline.mock_metadata_extractor import MockMetadataExtractor
+from indexing_pipeline.mock_clinical_metadata_extractor import MockClinicalMetadataExtractor
 from indexing_pipeline.chroma_client import ChromaClient
 from indexing_pipeline.indexer import Indexer
 from dotenv import load_dotenv
@@ -23,7 +23,7 @@ CHROMA_API_KEY= os.getenv("CHROMA_API_KEY")
 
 app = FastAPI()
 client = CloudClient(tenant=CHROMA_TENANT, database=CHROMA_DATABASE, api_key=CHROMA_API_KEY)
-indexer = Indexer(DoclingParser(), MockMetadataExtractor(), ChromaClient(client, COLLECTION_NAME))
+indexer = Indexer(DoclingParser(), MockClinicalMetadataExtractor(), ChromaClient(client, COLLECTION_NAME))
 
 @app.post("/documents")
 async def upload_document(file: UploadFile):
@@ -39,7 +39,7 @@ async def upload_document(file: UploadFile):
         with open(path, "wb") as local:
             local.write(data)
         start = datetime.datetime.now()
-        indexer.run(path)
+        indexer.run(str(path))
         duration = datetime.datetime.now() - start
         print(f"Time to index: {duration.total_seconds()}") #to add proper logging.
 
