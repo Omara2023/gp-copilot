@@ -10,6 +10,6 @@ class ChromaClient:
     def add(self, docuements: list[str], metadata: list[dict], ids: list[str]):
         self.collection.add(documents=docuements, metadatas=metadata, ids=ids)
 
-    def query(self, query: str, k: int = 5, metadata_filter: dict = {}):
+    def query(self, query: str, k: int = 5, metadata_filter: dict | None = None):
         results = self.collection.query(query_texts=[query], k=k, where=metadata_filter)
         return results
