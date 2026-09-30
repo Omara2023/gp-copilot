@@ -1,8 +1,9 @@
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from models.clinical_metadata import ClinicalMetadata
+from indexing_pipeline.metadata_extractor import MetadataExtractor
 
-class ClinicalMetadataExtractor:
+class ClinicalMetadataExtractor(MetadataExtractor):
 
     def __init__(self, model: str = "gemini-2.5-flash"):
         self.llm = GoogleGenerativeAI(model=model, temperature=0)

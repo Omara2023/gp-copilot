@@ -4,5 +4,5 @@ class DocumentParser(ABC):
     """Parse PDFs for text."""
 
     @abstractmethod
-    def parse(self, path: str) -> str:
+    def parse(self, path: str):
         pass
