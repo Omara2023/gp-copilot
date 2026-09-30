@@ -1,8 +1,9 @@
 from chromadb.api import ClientAPI
 from models.clinical_metadata import ClinicalMetadata
+from indexing_pipeline.vector_client import VectorClient
 
-class ChromaClient:
-    """Wrapper to interact with chromadb vector database."""
+class ChromaClient(VectorClient):
+    """Wrapper to interact with chromadb database."""
 
     def __init__(self, client: ClientAPI, name: str):
         self.client = client
