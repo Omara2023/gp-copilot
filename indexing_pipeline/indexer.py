@@ -5,7 +5,7 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.types.doc.document import DoclingDocument
 from models.clinical_metadata import ClinicalMetadata
 from indexing_pipeline.docling_parser import DoclingParser
-from indexing_pipeline.chroma_client import ChromaClient
+from indexing_pipeline.vector_client import VectorClient
 from indexing_pipeline.clinical_metadata_extractor import MetadataExtractor
 
 class IndexerState(BaseModel):
@@ -16,7 +16,7 @@ class IndexerState(BaseModel):
 
 class Indexer:
 
-    def __init__(self, parser: DoclingParser, metadata_extractor: MetadataExtractor, vector_client: ChromaClient):
+    def __init__(self, parser: DoclingParser, metadata_extractor: MetadataExtractor, vector_client: VectorClient):
         self.parser = parser
         self.metadata_extractor = metadata_extractor
         self.vector_client = vector_client
