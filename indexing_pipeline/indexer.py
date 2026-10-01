@@ -1,12 +1,15 @@
 import uuid #to replace with deterministic approach of document_id + index to ensure proper dedupe of reindexing same document
+import logging
 from pydantic import BaseModel, Field
 from langgraph.graph import START, END, StateGraph
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.types.doc.document import DoclingDocument
 from models.clinical_metadata import ClinicalMetadata
 from indexing_pipeline.docling_parser import DoclingParser
-from indexing_pipeline.chroma_client import ChromaClient
+from indexing_pipeline.vector_client import VectorClient
 from indexing_pipeline.clinical_metadata_extractor import MetadataExtractor
+
+logger = logging.getLogger(__name__)
 
 class IndexerState(BaseModel):
     path: str
@@ -16,7 +19,7 @@ class IndexerState(BaseModel):
 
 class Indexer:
 
-    def __init__(self, parser: DoclingParser, metadata_extractor: MetadataExtractor, vector_client: ChromaClient):
+    def __init__(self, parser: DoclingParser, metadata_extractor: MetadataExtractor, vector_client: VectorClient):
         self.parser = parser
         self.metadata_extractor = metadata_extractor
         self.vector_client = vector_client
@@ -43,17 +46,20 @@ class Indexer:
         return {"document": document, "chunks": chunks}
 
     def metadata_extraction(self, state: IndexerState) -> dict:
+        logger.info("Executing metadata extraction node")
         chunks = state.chunks
         metadata = []
         for c in chunks:
             result = self.metadata_extractor.invoke(c)
             metadata.append(result)
+            logger.debug("Chunk: %s", c)
+            logger.debug("Extracted clinical metadata: %s", result)
 
         return {"metadata": metadata}
 
     def injection(self, state: IndexerState) -> dict:
         documents = [chunk.text for chunk in state.chunks]
-        metadata = [self.vector_client._to_chroma_metadata(m) for m in state.metadata]
+        metadata = [m._to_chroma_metadata() for m in state.metadata]
         ids = [str(uuid.uuid4()) for _ in documents]
         self.vector_client.add(documents=documents, metadata=metadata, ids=ids)
         return {}

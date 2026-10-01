@@ -7,3 +7,5 @@ class MetadataExtractor(ABC):
     @abstractmethod
     def invoke(self, chunk: str) -> ClinicalMetadata:
         pass
+
+    
