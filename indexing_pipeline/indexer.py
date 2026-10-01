@@ -52,8 +52,8 @@ class Indexer:
         for c in chunks:
             result = self.metadata_extractor.invoke(c)
             metadata.append(result)
-            logger.info("Chunk: %s", c)
-            logger.info("Extracted clinical metadata: %s", result)
+            logger.debug("Chunk: %s", c)
+            logger.debug("Extracted clinical metadata: %s", result)
 
         return {"metadata": metadata}
 
