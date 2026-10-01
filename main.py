@@ -32,7 +32,7 @@ CHROMA_API_KEY= os.getenv("CHROMA_API_KEY")
 
 app = FastAPI()
 client = CloudClient(tenant=CHROMA_TENANT, database=CHROMA_DATABASE, api_key=CHROMA_API_KEY)
-indexer = Indexer(DoclingParser(), ClinicalMetadataExtractor(), MockVectorClient(COLLECTION_NAME))
+indexer = Indexer(DoclingParser(), ClinicalMetadataExtractor(MODEL_NAME), MockVectorClient(COLLECTION_NAME))
 
 @app.post("/documents")
 async def upload_document(file: UploadFile):

@@ -15,13 +15,3 @@ class ChromaClient(VectorClient):
     def query(self, query: str, k: int = 5, metadata_filter: dict | None = None):
         results = self.collection.query(query_texts=[query], k=k, where=metadata_filter)
         return results
-
-    def _to_chroma_metadata(self, metadata: ClinicalMetadata) -> dict: #consider moving to clinical metadata model itself.
-        return {
-            "document_id": metadata.document_id,
-            "patient_id": metadata.patient_id,
-            "medications": metadata.medications or ["__none__"],
-            "conditions": metadata.conditions or ["__none__"],
-            "symptoms": metadata.symptoms or ["__none__"],
-            "events": metadata.events or ["__none__"],
-        }

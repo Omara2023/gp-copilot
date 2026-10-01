@@ -5,8 +5,8 @@ from indexing_pipeline.metadata_extractor import MetadataExtractor
 
 class ClinicalMetadataExtractor(MetadataExtractor):
 
-    def __init__(self, model: str = "gemini-2.5-flash"):
-        self.llm = ChatGoogleGenerativeAI(model=model, temperature=0)
+    def __init__(self, model: str):
+        self.llm = ChatGoogleGenerativeAI(model=model)
 
         prompt = ChatPromptTemplate.from_messages([
             (

@@ -59,7 +59,7 @@ class Indexer:
 
     def injection(self, state: IndexerState) -> dict:
         documents = [chunk.text for chunk in state.chunks]
-        metadata = [self.vector_client._to_chroma_metadata(m) for m in state.metadata]
+        metadata = [m._to_chroma_metadata() for m in state.metadata]
         ids = [str(uuid.uuid4()) for _ in documents]
         self.vector_client.add(documents=documents, metadata=metadata, ids=ids)
         return {}
