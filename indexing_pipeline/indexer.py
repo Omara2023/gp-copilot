@@ -1,4 +1,5 @@
 import uuid #to replace with deterministic approach of document_id + index to ensure proper dedupe of reindexing same document
+import logging
 from pydantic import BaseModel, Field
 from langgraph.graph import START, END, StateGraph
 from docling_core.transforms.chunker.base import BaseChunk
@@ -7,6 +8,8 @@ from models.clinical_metadata import ClinicalMetadata
 from indexing_pipeline.docling_parser import DoclingParser
 from indexing_pipeline.vector_client import VectorClient
 from indexing_pipeline.clinical_metadata_extractor import MetadataExtractor
+
+logger = logging.getLogger(__name__)
 
 class IndexerState(BaseModel):
     path: str
@@ -43,11 +46,14 @@ class Indexer:
         return {"document": document, "chunks": chunks}
 
     def metadata_extraction(self, state: IndexerState) -> dict:
+        logger.info("Executing metadata extraction node")
         chunks = state.chunks
         metadata = []
         for c in chunks:
             result = self.metadata_extractor.invoke(c)
             metadata.append(result)
+            logger.info("Chunk: %s", c)
+            logger.info("Extracted clinical metadata: %s", result)
 
         return {"metadata": metadata}
 
