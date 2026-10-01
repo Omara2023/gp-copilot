@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 logging.basicConfig(
     filename="metadata_extraction.log",
     level=logging.INFO,
@@ -48,7 +50,7 @@ async def upload_document(file: UploadFile):
         start = datetime.datetime.now()
         indexer.run(str(path))
         duration = datetime.datetime.now() - start
-        print(f"Time to index: {duration.total_seconds()}") #to add proper logging.
+        logger.info(f"Time to index: {duration.total_seconds()}") #to add proper logging.
 
     return {"status": "indexed"}
 
