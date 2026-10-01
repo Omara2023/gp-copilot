@@ -1,4 +1,4 @@
-from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from models.clinical_metadata import ClinicalMetadata
 from indexing_pipeline.metadata_extractor import MetadataExtractor
@@ -6,7 +6,7 @@ from indexing_pipeline.metadata_extractor import MetadataExtractor
 class ClinicalMetadataExtractor(MetadataExtractor):
 
     def __init__(self, model: str = "gemini-2.5-flash"):
-        self.llm = GoogleGenerativeAI(model=model, temperature=0)
+        self.llm = ChatGoogleGenerativeAI(model=model, temperature=0)
 
         prompt = ChatPromptTemplate.from_messages([
             (
@@ -36,4 +36,5 @@ class ClinicalMetadataExtractor(MetadataExtractor):
         )
 
     def invoke(self, chunk: str) -> ClinicalMetadata:
-        return self.chain.invoke(input={"chunk": chunk})
+        results = self.chain.invoke(input={"chunk": chunk})
+        return results
