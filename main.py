@@ -28,6 +28,17 @@ CHROMA_TENANT = os.getenv("CHROMA_TENANT")
 CHROMA_DATABASE= os.getenv("CHROMA_DATABASE")
 CHROMA_API_KEY= os.getenv("CHROMA_API_KEY")
 
+if MODEL_NAME is None:
+    raise Exception("Missing MODEL_NAME.")
+elif COLLECTION_NAME is None:
+    raise Exception("Missing COLLECTION_NAME.")
+elif CHROMA_TENANT is None:
+    raise Exception("Missing CHROMA_TENANT.")
+elif CHROMA_DATABASE is None:
+    raise Exception("Missing CHROMA_DATABASE.")
+elif CHROMA_API_KEY is None:
+    raise Exception("Missing CHROMA_API_KEY")
+
 app = FastAPI()
 client = CloudClient(tenant=CHROMA_TENANT, database=CHROMA_DATABASE, api_key=CHROMA_API_KEY)
 indexer = Indexer(DoclingParser(), ClinicalMetadataExtractor(MODEL_NAME), ChromaClient(client, COLLECTION_NAME))
