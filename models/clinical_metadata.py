@@ -1,19 +1,17 @@
 from pydantic import BaseModel
 
 class ClinicalMetadata(BaseModel):
-    """Extracted metadata from clinical document chunks."""
+    """LLM-extracted clinical metadata from a document chunk."""
 
-    document_id: str
-    patient_id: str
     medications: list[str]
     conditions: list[str]
     symptoms: list[str]
     events: list[str]
 
-    def _to_chroma_metadata(self) -> dict:
+    def to_chroma_metadata(self, document_id: str, patient_id: str) -> dict:
         return {
-            "document_id": self.document_id,
-            "patient_id": self.patient_id,
+            "document_id": document_id,
+            "patient_id": patient_id,
             "medications": self.medications or ["__none__"],
             "conditions": self.conditions or ["__none__"],
             "symptoms": self.symptoms or ["__none__"],
