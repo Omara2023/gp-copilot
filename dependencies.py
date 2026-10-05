@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from indexing_pipeline.indexer import Indexer
 from indexing_pipeline.docling_parser import DoclingParser
 from indexing_pipeline.clinical_metadata_extractor import ClinicalMetadataExtractor
+from indexing_pipeline.metadata_normaliser import MetadataNormaliser
+from indexing_pipeline.metadata_validator import MetadataValidator
 from indexing_pipeline.chroma_client import ChromaClient
 
 from services.gcs_client import GCSClient
@@ -39,6 +41,8 @@ client = CloudClient(tenant=CHROMA_TENANT, database=CHROMA_DATABASE, api_key=CHR
 indexer = Indexer(
     parser=DoclingParser(),
     metadata_extractor=ClinicalMetadataExtractor(MODEL_NAME),
+    metadata_normaliser=MetadataNormaliser(),
+    metadata_validator=MetadataValidator(),
     vector_client=ChromaClient(client=client, name=COLLECTION_NAME),
 )
 
