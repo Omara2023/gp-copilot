@@ -42,11 +42,15 @@ class Indexer:
         
         builder.add_node("document_processing", self.document_processing)
         builder.add_node("metadata_extraction", self.metadata_extraction)
+        builder.add_node("metadata_normalisation", self.metadata_normalisation)
+        builder.add_node("metadata_validation", self.metadata_validation)
         builder.add_node("injection", self.injection)
     
         builder.add_edge(START, "document_processing")
         builder.add_edge("document_processing", "metadata_extraction")
-        builder.add_edge("metadata_extraction", "injection")
+        builder.add_edge("metadata_extraction", "metadata_normalisation")
+        builder.add_edge("metadata_normalisation", "metadata_validation")
+        builder.add_edge("metadata_validation", "injection")
         builder.add_edge("injection", END)
         
         return builder.compile()
@@ -72,7 +76,7 @@ class Indexer:
         self.metadata_normaliser.normalise(state.metadata) 
         return {"metadata": state.metadata}
     
-    def validate_metadata_node(self, state: IndexerState) -> IndexerState:
+    def metadata_validation(self, state: IndexerState) -> IndexerState:
         for metadata, chunk in zip(state.metadata, state.chunks, strict=True):
             result = self.metadata_validator.validate(metadata, source_text=chunk.text)
 
